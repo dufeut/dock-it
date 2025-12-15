@@ -51,7 +51,9 @@ const extractWidgetConfig = (widget: unknown): WidgetConfig => {
 };
 
 /** Serialize Lumino DockPanel layout to JSON-safe format */
-export const serializeLayout = (layout: DockPanel.ILayoutConfig): SerializedLayout => {
+export const serializeLayout = (
+  layout: DockPanel.ILayoutConfig
+): SerializedLayout => {
   if (!layout.main) return { main: null };
 
   const traverseArea = (area: AreaConfig): SerializedArea => {
@@ -120,8 +122,23 @@ export const countSplits = (layout: SerializedLayout): number => {
     if (area.type === "tab-area") return 0;
     // Each split-area with N children contributes (N-1) splits + recurse into children
     const thisSplit = area.children.length - 1;
-    const childSplits = area.children.reduce((sum, child) => sum + count(child), 0);
+    const childSplits = area.children.reduce(
+      (sum, child) => sum + count(child),
+      0
+    );
     return thisSplit + childSplits;
+  };
+
+  return count(layout.main);
+};
+
+/** Count the number of panels (tab areas) in a layout */
+export const countPanels = (layout: SerializedLayout): number => {
+  if (!layout.main) return 0;
+
+  const count = (area: SerializedArea): number => {
+    if (area.type === "tab-area") return 1;
+    return area.children.reduce((sum, child) => sum + count(child), 0);
   };
 
   return count(layout.main);

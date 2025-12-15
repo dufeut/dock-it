@@ -1,7 +1,7 @@
 import { Docker } from "./bundle";
 import "./style.css";
 
-const EDITOR: any = {};
+const EDITOR: WeakMap<any, any> = new WeakMap();
 
 const dock = Docker.create({
   model: {
@@ -15,22 +15,29 @@ const dock = Docker.create({
     editor: (args) => ({
       ...args,
       render: (ctx: any) =>
-        `<div style="padding: 20px; color: #ccc;"><h2>${ctx.label}</h2></div>`,
+        `<div style="padding: 20px; color: #ccc; min-width: 200px;"><h2>${ctx.label}</h2></div>`,
     }),
   },
   onTabAdded: (config: any) => {
     if (config.view?.id && config.view.id) {
-      console.log("[dock length]", dock.length);
+      console.log("[dock]", dock.count);
       if (!EDITOR[config.view.id]) {
-        EDITOR[config.view.id] = true;
-        console.log("[tab added]", config.view?.id);
+        config.editor = null;
+        EDITOR[config.view.id] = config;
       }
     }
   },
+  onTabRemoved: (config: any) => {
+    if (EDITOR[config.view.id]) {
+      delete EDITOR[config.view.id];
+    }
+    console.log("[EDITOR]", EDITOR);
+  },
+
   // Theme
   theme: {
     panelBg: "#1e1e1e",
-    tabBarBg: "#252526",
+    tabBarBg: "#1e1e1e",
     tabBg: "#2d2d2d",
     tabBgActive: "#1e1e1e",
     tabTextColor: "#ccc",
@@ -85,7 +92,7 @@ const widget3 = mocker({
   label: "index.html",
 });
 const widget4 = mocker({
-  id: "file-3",
+  id: "file-4",
   label: "app.py",
 });
 const widget5 = mocker({
@@ -111,11 +118,6 @@ console.log("Docker initialized!", dock);
 
 setTimeout(() => {
   Docker.setDirty("file-1", true);
-}, 1000);
-
-setInterval(() => {
-  console.log(dock.length);
-  //console.log(dock.save());
 }, 1000);
 
 /*

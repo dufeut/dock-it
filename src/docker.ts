@@ -4,6 +4,7 @@ import {
   serializeLayout,
   deserializeLayout,
   countSplits,
+  countPanels,
   type SerializedLayout,
   type WidgetConfig,
 } from "./layout-serializer";
@@ -283,8 +284,17 @@ export class Docker {
     return countSplits(this.__save());
   }
 
+  /** Get the number of panels (tab areas) in the layout */
   get length(): number {
-    return this.splitCount + 1;
+    return countPanels(this.__save());
+  }
+
+  /** Get the total number of widgets (tabs) in the dock */
+  get count(): { widgets: number; panels: number } {
+    if (!this.dock) return { panels: this.length, widgets: 0 };
+    let count = 0;
+    for (const _ of this.dock.widgets()) count++;
+    return { panels: this.length, widgets: count };
   }
 
   /** Get the underlying DockPanel (for advanced use) */

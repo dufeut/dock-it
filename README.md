@@ -122,8 +122,8 @@ const dock = Docker.create({
   },
   // Close button icons
   icons: {
-    close: { text: "✕", fontSize: "20px", marginTop: "0" },
-    dirty: { text: "◉", fontSize: "24px", marginTop: "2px" },
+    close: { text: "✕", fontSize: "20px", marginTop: "0" }, // × X ✕
+    dirty: { text: "◉", fontSize: "24px", marginTop: "2px" }, // ● ◉
   },
   // Close handlers
   handlers: {
@@ -245,14 +245,14 @@ Docker.setDirty("file-1", false);
 
 When a dirty tab is closed, `handlers.onDirtyClose` is called instead of `handlers.onClose`.
 
-## Docker Split Length
+## Docker (Panels & Widgets)
 
 Mark tabs as having unsaved changes:
 
 ```typescript
 const dock = Docker.create(...)
 
-console.log(dock.length);
+console.log(dock.count); // {panels: 2, widgets: 5}
 ```
 
 ## Theming
@@ -285,6 +285,17 @@ const dock = Docker.create({
 ```
 
 Or use `setTheme` separately:
+
+### Current Tab (Custom Theme)
+
+```css
+.code-editor-widget-tab-class {
+  border-bottom: 3px transparent solid;
+}
+.code-editor-widget-tab-class[aria-selected="true"] {
+  border-color: var(--dock-focus);
+}
+```
 
 ```typescript
 import { setTheme } from "@dufeut/dock-it";

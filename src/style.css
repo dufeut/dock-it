@@ -1,3 +1,6 @@
+.code-editor-widget-tab-class {
+  border-bottom: 3px transparent solid;
+}
 .code-editor-widget-tab-class[aria-selected="true"] {
-  border-bottom: 3px rgb(0, 188, 221) solid !important;
+  border-color: var(--dock-focus);
 }
