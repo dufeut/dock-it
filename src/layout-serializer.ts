@@ -111,3 +111,18 @@ export const layoutToJSON = (layout: DockPanel.ILayoutConfig): string =>
 /** Parse JSON string to serialized layout */
 export const jsonToSerializedLayout = (json: string): SerializedLayout =>
   JSON.parse(json) as SerializedLayout;
+
+/** Count the number of splits in a layout (N panels = N-1 splits) */
+export const countSplits = (layout: SerializedLayout): number => {
+  if (!layout.main) return 0;
+
+  const count = (area: SerializedArea): number => {
+    if (area.type === "tab-area") return 0;
+    // Each split-area with N children contributes (N-1) splits + recurse into children
+    const thisSplit = area.children.length - 1;
+    const childSplits = area.children.reduce((sum, child) => sum + count(child), 0);
+    return thisSplit + childSplits;
+  };
+
+  return count(layout.main);
+};

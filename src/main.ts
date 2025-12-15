@@ -1,52 +1,74 @@
-import { Docker, Widget, setTheme } from "./bundle";
+import { Docker } from "./bundle";
 import "./style.css";
 
-setTheme({
-  panelBg: "#1e1e1e",
-  tabBarBg: "#252526",
-  tabBg: "#2d2d2d",
-  tabBgActive: "#1e1e1e",
-  tabTextColor: "#ccc",
-  tabPaddingX: "8px",
-  tabBarMinHeight: "30px",
-  tabBarGap: "2px",
-  resizerBg: "#ccc",
-  resizerHv: "#00ccccff",
-  overlayBg: "#007acc",
-  overlayOpacity: "0.3",
-  iconLeftMargin: "10px",
-  iconRightMargin: "20px",
-  iconRightOpacity: "0.1",
-});
+const EDITOR: any = {};
 
-Widget.icons = {
-  close: { text: "✕", fontSize: "20px", marginTop: "0" }, // × X ✕
-  dirty: { text: "◉", fontSize: "24px", marginTop: "2px" }, // ● ◉
-};
-
-Widget.handlers = {
-  onClose: ({ close }) => {
-    close(); // Just close
+const dock = Docker.create({
+  model: {
+    editor: {
+      created: (widget) => console.log(`[created] ${widget.id}`),
+      deleted: (widget) => console.log(`[deleted] ${widget.id}`),
+    },
   },
-  onDirtyClose: ({ widgetId, close }) => {
-    // Show confirm dialog for dirty tabs
-    if (confirm(`"${widgetId}" has unsaved changes. Close anyway?`)) {
-      close();
-    }
-  },
-};
-
-const dock = new Docker({
+  // Widgets
   widgets: {
-    editor: (cfg) => ({
-      ...cfg,
+    editor: (args) => ({
+      ...args,
       render: (ctx: any) =>
         `<div style="padding: 20px; color: #ccc;"><h2>${ctx.label}</h2></div>`,
     }),
   },
-  onTabAdded: (config) => console.log("[tab added]", config.view?.id),
-  onTabRemoved: (config) => console.log("[tab removed]", config.view?.id),
+  onTabAdded: (config: any) => {
+    if (config.view?.id && config.view.id) {
+      console.log("[dock length]", dock.length);
+      if (!EDITOR[config.view.id]) {
+        EDITOR[config.view.id] = true;
+        console.log("[tab added]", config.view?.id);
+      }
+    }
+  },
+  // Theme
+  theme: {
+    panelBg: "#1e1e1e",
+    tabBarBg: "#252526",
+    tabBg: "#2d2d2d",
+    tabBgActive: "#1e1e1e",
+    tabTextColor: "#ccc",
+    tabPaddingX: "8px",
+    tabBarMinHeight: "30px",
+    tabBarGap: "2px",
+    resizerBg: "#ccc",
+    resizerHv: "#00ccccff",
+    overlayBg: "#007acc",
+    overlayOpacity: "0.3",
+    iconLeftMargin: "10px",
+    iconRightMargin: "20px",
+    iconRightOpacity: "0.1",
+  },
+  // Closer Icons & Handlers
+  icons: {
+    close: { text: "✕", fontSize: "20px", marginTop: "0" }, // × X ✕
+    dirty: { text: "◉", fontSize: "24px", marginTop: "2px" }, // ● ◉
+  },
+  handlers: {
+    onClose: ({ close }) => {
+      close(); // Just close
+    },
+    onDirtyClose: ({ widgetId, close }) => {
+      // Show confirm dialog for dirty tabs
+      if (confirm(`"${widgetId}" has unsaved changes. Close anyway?`)) {
+        close();
+      }
+    },
+  },
 });
+
+const mocker = ({ id, label }: any) =>
+  dock.widget("editor", {
+    id: id,
+    label: label,
+    closable: true,
+  });
 
 // Create widgets
 const widget1 = dock.widget("editor", {
@@ -58,10 +80,17 @@ const widget2 = dock.widget("editor", {
   id: "file-2",
   label: "style.css",
 });
-const widget3 = dock.widget("editor", {
+const widget3 = mocker({
   id: "file-3",
   label: "index.html",
-  closable: false,
+});
+const widget4 = mocker({
+  id: "file-3",
+  label: "app.py",
+});
+const widget5 = mocker({
+  id: "file-5",
+  label: "lets.go",
 });
 
 // Attach to DOM
@@ -72,6 +101,8 @@ dock.attach(container);
 dock.add(widget1);
 dock.add(widget2, { mode: "split-right", ref: widget1 });
 dock.add(widget3, { mode: "tab-after", ref: widget2 });
+dock.add(widget4, { mode: "tab-after", ref: widget3 });
+dock.add(widget5, { mode: "tab-after", ref: widget1 });
 
 // Handle resize
 window.addEventListener("resize", () => dock.update());
@@ -79,16 +110,22 @@ window.addEventListener("resize", () => dock.update());
 console.log("Docker initialized!", dock);
 
 setTimeout(() => {
-  Widget.setDirty("file-1", true);
+  Docker.setDirty("file-1", true);
+}, 1000);
+
+setInterval(() => {
+  console.log(dock.length);
+  //console.log(dock.save());
 }, 1000);
 
 /*
 // Save
-localStorage.setItem("dock-layout", dock.saveJSON());
+localStorage.setItem("dock-layout", dock.save());
 dock.dispose();
 // Restore
 setTimeout(() => {
   const saved = localStorage.getItem("dock-layout");
-  if (saved) dock.loadJSON(container, saved);
+  if (saved) dock.load(container, saved);
 }, 3000);
+
 */

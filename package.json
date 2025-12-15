@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "A powerful, resizable docking system web component with draggable tabs, splittable panels, and layout serialization",
   "type": "module",
-  "module": "./dist/lumino-easy.es.js",
-  "main": "./dist/lumino-easy.iife.js",
+  "module": "./dist/dock-it.es.js",
+  "main": "./dist/dock-it.iife.js",
   "types": "./dist/bundle.d.ts",
   "exports": {
     ".": {
       "types": "./dist/bundle.d.ts",
-      "import": "./dist/lumino-easy.es.js",
-      "require": "./dist/lumino-easy.iife.js"
+      "import": "./dist/dock-it.es.js",
+      "require": "./dist/dock-it.iife.js"
     }
   },
   "files": [

@@ -3,11 +3,13 @@ import MyDockPanel, { type TabNodeConfig } from "./components/dock-panel";
 import {
   serializeLayout,
   deserializeLayout,
+  countSplits,
   type SerializedLayout,
   type WidgetConfig,
 } from "./layout-serializer";
 import type { RenderContext, RenderFn } from "./components/widget";
 import MyWidget from "./components/widget";
+import { setTheme, type DockTheme } from "./inject-styles";
 
 export type {
   WidgetConfig,
@@ -33,6 +35,19 @@ export interface WidgetModel {
   readonly deleted?: (widget: Widget) => void;
 }
 
+/** Icon style configuration */
+export interface IconStyle {
+  readonly text?: string;
+  readonly fontSize?: string;
+  readonly marginTop?: string;
+}
+
+/** Close handler context */
+export interface CloseHandlerContext {
+  readonly widgetId: string;
+  readonly close: () => void;
+}
+
 /** Docker configuration */
 export interface DockerConfig {
   readonly model?: Readonly<Record<string, WidgetModel>>;
@@ -42,6 +57,18 @@ export interface DockerConfig {
   readonly addButtonEnabled?: boolean;
   readonly onTabAdded?: (config: TabNodeConfig) => void;
   readonly onTabRemoved?: (config: TabNodeConfig) => void;
+  /** Theme configuration */
+  readonly theme?: DockTheme;
+  /** Icon styles for close/dirty indicators */
+  readonly icons?: {
+    readonly close?: IconStyle;
+    readonly dirty?: IconStyle;
+  };
+  /** Close handlers */
+  readonly handlers?: {
+    readonly onClose?: (ctx: CloseHandlerContext) => void;
+    readonly onDirtyClose?: (ctx: CloseHandlerContext) => void;
+  };
 }
 
 /** Add widget options */
@@ -58,11 +85,49 @@ export interface AddOptions {
 
 /** Docker - A clean wrapper around Lumino DockPanel with JSON serialization */
 export class Docker {
+  static setDirty = MyWidget.setDirty.bind(MyWidget);
+  static isDirty = MyWidget.isDirty.bind(MyWidget);
+
   private dock: MyDockPanel | null = null;
   private readonly config: DockerConfig;
 
   constructor(config: DockerConfig) {
     this.config = config;
+  }
+
+  static create(config: DockerConfig): Docker {
+    // Apply theme if provided
+    if (config.theme) {
+      setTheme(config.theme);
+    }
+
+    // Apply icons if provided
+    if (config.icons) {
+      if (config.icons.close) {
+        MyWidget.icons.close = {
+          ...MyWidget.icons.close,
+          ...config.icons.close,
+        };
+      }
+      if (config.icons.dirty) {
+        MyWidget.icons.dirty = {
+          ...MyWidget.icons.dirty,
+          ...config.icons.dirty,
+        };
+      }
+    }
+
+    // Apply handlers if provided
+    if (config.handlers) {
+      if (config.handlers.onClose) {
+        MyWidget.handlers.onClose = config.handlers.onClose;
+      }
+      if (config.handlers.onDirtyClose) {
+        MyWidget.handlers.onDirtyClose = config.handlers.onDirtyClose;
+      }
+    }
+
+    return new Docker(config);
   }
 
   /** Get all tracked tab nodes */
@@ -141,17 +206,17 @@ export class Docker {
   }
 
   /** Save current layout to JSON-serializable object */
-  save(): SerializedLayout {
+  __save(): SerializedLayout {
     return this.dock ? serializeLayout(this.dock.saveLayout()) : { main: null };
   }
 
   /** Save layout as JSON string */
-  saveJSON(): string {
-    return JSON.stringify(this.save(), null, 2);
+  save(): string {
+    return JSON.stringify(this.__save(), null, 2);
   }
 
   /** Load layout from serialized object */
-  load(el: HTMLElement | null, layout: SerializedLayout): this {
+  __load(el: HTMLElement | null, layout: SerializedLayout): this {
     this.attach(el);
     if (!this.dock) {
       throw new Error("Docker not attached. Call attach() first.");
@@ -189,8 +254,8 @@ export class Docker {
   }
 
   /** Load layout from JSON string */
-  loadJSON(el: HTMLElement | null, json: string): this {
-    return this.load(el, JSON.parse(json) as SerializedLayout);
+  load(el: HTMLElement | null, json: string): this {
+    return this.__load(el, JSON.parse(json) as SerializedLayout);
   }
 
   /** Dispose the dock panel */
@@ -211,6 +276,15 @@ export class Docker {
   /** Check if disposed */
   get isDisposed(): boolean {
     return this.dock === null || this.dock.isDisposed;
+  }
+
+  /** Get the number of split areas in the layout */
+  get splitCount(): number {
+    return countSplits(this.__save());
+  }
+
+  get length(): number {
+    return this.splitCount + 1;
   }
 
   /** Get the underlying DockPanel (for advanced use) */

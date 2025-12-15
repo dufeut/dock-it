@@ -47,7 +47,7 @@ export default class MyDockPanel extends DockPanel {
       const view = document.querySelector(`[aria-labelledby="${tabId}"]`);
       // Find the widget that owns this tab by matching the view's id
       const widget = view?.id
-        ? (Array.from(this.widgets()).find((w) => w.id === view.id) ?? null)
+        ? Array.from(this.widgets()).find((w) => w.id === view.id) ?? null
         : null;
       const config: TabNodeConfig = {
         tab: data.node,
