@@ -1,7 +1,7 @@
 import { Docker } from "./bundle";
 import "./style.css";
 
-const EDITOR: WeakMap<any, any> = new WeakMap();
+const EDITOR: Map<string, any> = new Map();
 
 const dock = Docker.create({
   model: {
@@ -19,17 +19,23 @@ const dock = Docker.create({
     }),
   },
   onTabAdded: (config: any) => {
+    // Add actions to the toolbar (one per TabBar, shared by all tabs in that panel)
+    config.toolbar.innerHTML = `
+    <button class="toolbar-btn" title="Split">⊞</button>
+    <button class="toolbar-btn" title="More" onclick="console.log('Do More')">⋯</button>
+  `;
+    // Add actions to the toolbar (one per TabBar, shared by all tabs in that panel)
     if (config.view?.id && config.view.id) {
       console.log("[dock]", dock.count);
-      if (!EDITOR[config.view.id]) {
+      if (!EDITOR.has(config.view.id)) {
         config.editor = null;
-        EDITOR[config.view.id] = config;
+        EDITOR.set(config.view.id, config);
       }
     }
   },
   onTabRemoved: (config: any) => {
-    if (EDITOR[config.view.id]) {
-      delete EDITOR[config.view.id];
+    if (EDITOR.has(config.view.id)) {
+      EDITOR.delete(config.view.id);
     }
     console.log("[EDITOR]", EDITOR);
   },
@@ -38,11 +44,11 @@ const dock = Docker.create({
   theme: {
     panelBg: "#1e1e1e",
     tabBarBg: "#1e1e1e",
-    tabBg: "#2d2d2d",
-    tabBgActive: "#1e1e1e",
+    tabBg: "#1e1e1e",
+    tabBgActive: "#2d2d2d",
     tabTextColor: "#ccc",
     tabPaddingX: "8px",
-    tabBarMinHeight: "30px",
+    tabBarMinHeight: "32px",
     tabBarGap: "2px",
     resizerBg: "#ccc",
     resizerHv: "#00ccccff",
@@ -55,7 +61,7 @@ const dock = Docker.create({
   // Closer Icons & Handlers
   icons: {
     close: { text: "✕", fontSize: "20px", marginTop: "0" }, // × X ✕
-    dirty: { text: "◉", fontSize: "24px", marginTop: "2px" }, // ● ◉
+    dirty: { text: "◉", fontSize: "24px", marginTop: "4px" }, // ● ◉
   },
   handlers: {
     onClose: ({ close }) => {

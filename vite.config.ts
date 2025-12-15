@@ -7,7 +7,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/bundle.ts"),
       name: "Docker",
-      fileName: (format) => `lumino-easy.${format}.js`,
+      fileName: (format) => `dock-it.${format}.js`,
       formats: ["es", "iife"],
     },
     rollupOptions: {

@@ -1,4 +1,4 @@
-# @dufeut/dock-it
+# Dock-IT
 
 A powerful, resizable docking system built on [Lumino](https://github.com/jupyterlab/lumino) that enables IDE-like layouts with draggable tabs, splittable panels, and persistent layout serialization.
 
@@ -112,13 +112,13 @@ const dock = Docker.create({
     tabPaddingX: "8px",
     tabBarMinHeight: "30px",
     tabBarGap: "2px",
-    resizerBg: "#ccc",
-    resizerHv: "#00ccccff",
+    resizerBg: "#007acc",
+    resizerHv: "yellow",
     overlayBg: "#007acc",
     overlayOpacity: "0.3",
     iconLeftMargin: "10px",
     iconRightMargin: "20px",
-    iconRightOpacity: "0.1",
+    iconRightOpacity: "0.3",
   },
   // Close button icons
   icons: {
@@ -163,6 +163,9 @@ dock.dispose(): this                           // Clean up and destroy
 dock.nodes: TabNodeConfig[]                    // Get all tracked tab nodes
 dock.isDisposed: boolean                       // Check if disposed
 dock.panel: DockPanel | null                   // Get underlying Lumino panel
+dock.count: { panels, widgets }                // Get panel and widget counts
+dock.length: number                            // Get number of tab panels
+dock.splitCount: number                        // Get number of split areas
 ```
 
 ### Add Options
@@ -188,6 +191,7 @@ interface WidgetOptions {
   label?: string; // Tab label
   icon?: string; // CSS class for icon (e.g., "fa fa-file")
   closable?: boolean; // Allow closing the tab (default: true)
+  kind?: string; // Widget type for serialization
   render?: (ctx: RenderContext) => HTMLElement | string | void;
 }
 ```
@@ -273,18 +277,18 @@ const dock = Docker.create({
     tabPaddingX: "8px",
     tabBarMinHeight: "30px",
     tabBarGap: "2px",
-    resizerBg: "#ccc",
-    resizerHv: "#00ccccff",
+    resizerBg: "#007acc",
+    resizerHv: "yellow",
     overlayBg: "#007acc",
     overlayOpacity: "0.3",
     iconLeftMargin: "10px",
     iconRightMargin: "20px",
-    iconRightOpacity: "0.1",
+    iconRightOpacity: "0.3",
   },
 });
 ```
 
-Or use `setTheme` separately:
+Or use `setTheme` separately, or access `defaultTheme` for the default values:
 
 ### Current Tab (Custom Theme)
 
@@ -298,12 +302,16 @@ Or use `setTheme` separately:
 ```
 
 ```typescript
-import { setTheme } from "@dufeut/dock-it";
+import { setTheme, defaultTheme } from "@dufeut/dock-it";
 
+// Use setTheme to update theme dynamically
 setTheme({
   panelBg: "#1e1e1e",
   // ... other options
 });
+
+// Access default theme values
+console.log(defaultTheme.resizerBg); // "#007acc"
 ```
 
 ## Layout Persistence

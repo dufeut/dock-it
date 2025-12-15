@@ -3,9 +3,36 @@ import { DockPanel, Widget } from "@lumino/widgets";
 /** Tab node configuration */
 export interface TabNodeConfig {
   readonly tab: HTMLElement;
+  readonly tabBar: HTMLElement;
+  readonly toolbar: HTMLElement;
   readonly view: Element | null;
   readonly widget: Widget | null;
   readonly closable: boolean;
+}
+
+/** Ensure a toolbar exists in a TabBar, returns it */
+function ensureToolbar(tabBar: HTMLElement): HTMLElement {
+  let toolbar = tabBar.querySelector(".lm-TabBar-toolbar") as HTMLElement;
+  if (!toolbar) {
+    toolbar = document.createElement("div");
+    toolbar.className = "lm-TabBar-toolbar";
+    tabBar.appendChild(toolbar);
+  }
+  return toolbar;
+}
+
+/** Enable horizontal scroll with mouse wheel on TabBar content */
+function enableHorizontalScroll(tabBar: HTMLElement): void {
+  const content = tabBar.querySelector(".lm-TabBar-content") as HTMLElement;
+  if (!content || content.dataset.hscroll) return;
+  content.dataset.hscroll = "true";
+
+  content.addEventListener("wheel", (e) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      content.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
 }
 
 /** Tab lifecycle callbacks */
@@ -49,8 +76,16 @@ export default class MyDockPanel extends DockPanel {
       const widget = view?.id
         ? Array.from(this.widgets()).find((w) => w.id === view.id) ?? null
         : null;
+      // Find parent TabBar and ensure toolbar exists
+      const tabBar = data.node.closest(".lm-TabBar") as HTMLElement;
+      if (tabBar) {
+        enableHorizontalScroll(tabBar);
+      }
+      const toolbar = tabBar ? ensureToolbar(tabBar) : document.createElement("div");
       const config: TabNodeConfig = {
         tab: data.node,
+        tabBar,
+        toolbar,
         view,
         widget,
         closable: data.closable,
